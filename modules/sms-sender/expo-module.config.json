@@ -1,0 +1,9 @@
+{
+  "platforms": ["android", "ios"],
+  "ios": {
+    "modules": ["SmsSenderModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.smssender.SmsSenderModule"]
+  }
+}
