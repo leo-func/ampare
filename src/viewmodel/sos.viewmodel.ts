@@ -11,9 +11,11 @@ import {
   saveConfig,
 } from "@/services/storage.service";
 
+import { useLocation } from "@/hooks/useLocation";
+
 export function useSOSViewModel() {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  
+
   const [config, setConfig] = useState<Config>({
     sensitivity: "1",
     detectionDuration: "100",
@@ -24,7 +26,7 @@ export function useSOSViewModel() {
   const [monitoring, setMonitoring] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  const message = "6777";
+  const { getCurrentLocation } = useLocation();
 
   useEffect(() => {
     async function loadData() {
@@ -81,8 +83,6 @@ export function useSOSViewModel() {
 
     if (phoneNumbers.length === 0) return false;
 
-    if (!message.trim()) return false;
-
     if (!smsSender.isAvailable()) return false;
 
     return true;
@@ -135,11 +135,38 @@ export function useSOSViewModel() {
 
       const smsGranted = await ensureSmsPermission();
 
-      if (!smsGranted) return;
+      if (!smsGranted) {
+        Alert.alert("Permissão necessária", "Permita o envio de SMS.");
+        return;
+      }
 
       const notificationGranted = await ensureNotificationPermission();
 
-      if (!notificationGranted) return;
+      if (!notificationGranted) {
+        Alert.alert("Permissão necessária", "Permita o envio de notificações.");
+        return;
+      }
+
+      // Obtém a localização atual
+      const currentLocation = await getCurrentLocation();
+
+      if (!currentLocation) {
+        Alert.alert(
+          "Localização indisponível",
+          "Não foi possível obter sua localização. Verifique a permissão e o GPS."
+        );
+        return;
+      }
+
+      const { latitude, longitude } = currentLocation.coords;
+
+      const message =
+        `EMERGÊNCIA! Preciso de ajuda!\n\n` +
+        `Minha localização:\n` +
+        `Latitude: ${latitude}\n` +
+        `Longitude: ${longitude}\n\n` +
+        `Ver localização no Google Maps:\n` +
+        `https://www.google.com/maps?q=${latitude},${longitude}`;
 
       const phoneNumbers = contacts
         .map((contact) => contact.phone.trim())
