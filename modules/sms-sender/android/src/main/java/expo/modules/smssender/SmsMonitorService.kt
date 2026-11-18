@@ -107,9 +107,7 @@ class SmsMonitorService : Service(), SensorEventListener {
     }
 
     private fun configureSensitivity() {
-        // 1 = mais sensível
-        // 10 = menos sensível
-        shakeThreshold = 5.0 + ((sensitivity - 1) * 1.0)
+        shakeThreshold = 15.0 - ((sensitivity - 1) * 1.0)
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
