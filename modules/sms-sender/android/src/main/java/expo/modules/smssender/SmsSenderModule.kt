@@ -26,7 +26,7 @@ class SmsSenderModule : Module() {
         }
 
         AsyncFunction("sendSMS") {
-            phoneNumber: String,
+            phoneNumbers: List<String>,
             message: String ->
 
             val context = appContext.reactContext
@@ -49,6 +49,14 @@ class SmsSenderModule : Module() {
                 )
             }
 
+            val validNumbers = phoneNumbers.filter { it.isNotBlank() }
+
+            if (validNumbers.isEmpty()) {
+                return@AsyncFunction "failed"
+            }
+
+            var failed = false
+
             try {
                 val smsManager =
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -60,32 +68,41 @@ class SmsSenderModule : Module() {
 
                 val parts = smsManager.divideMessage(message)
 
-                if (parts.size > 1) {
-                    smsManager.sendMultipartTextMessage(
-                        phoneNumber,
-                        null,
-                        parts,
-                        null,
-                        null
-                    )
-                } else {
-                    smsManager.sendTextMessage(
-                        phoneNumber,
-                        null,
-                        message,
-                        null,
-                        null
-                    )
+                for (phoneNumber in validNumbers) {
+                    try {
+                        if (parts.size > 1) {
+                            smsManager.sendMultipartTextMessage(
+                                phoneNumber,
+                                null,
+                                parts,
+                                null,
+                                null
+                            )
+                        } else {
+                            smsManager.sendTextMessage(
+                                phoneNumber,
+                                null,
+                                message,
+                                null,
+                                null
+                            )
+                        }
+                    } catch (error: Exception) {
+                        failed = true
+                        error.printStackTrace()
+                    }
                 }
 
-                "sent"
+                if (failed) "failed" else "sent"
+
             } catch (error: Exception) {
+                error.printStackTrace()
                 "failed"
             }
         }
 
         Function("startMonitoring") {
-            phoneNumber: String,
+            phoneNumbers: List<String>,
             message: String,
             config: Map<String, Any?> ->
 
@@ -109,6 +126,16 @@ class SmsSenderModule : Module() {
                 )
             }
 
+            val validNumbers = phoneNumbers.filter { it.isNotBlank() }
+
+            if (validNumbers.isEmpty()) {
+                throw CodedException(
+                    "E_RECIPIENTS",
+                    "Nenhum destinatário informado",
+                    null
+                )
+            }
+
             val sensitivity = (
                 (config["sensitivity"] as? Number)?.toInt() ?: 5
             ).coerceIn(1, 10)
@@ -125,7 +152,11 @@ class SmsSenderModule : Module() {
                 context,
                 SmsMonitorService::class.java
             ).apply {
-                putExtra(SmsMonitorService.EXTRA_PHONE, phoneNumber)
+                putStringArrayListExtra(
+                    SmsMonitorService.EXTRA_PHONES,
+                    ArrayList(validNumbers)
+                )
+
                 putExtra(SmsMonitorService.EXTRA_MESSAGE, message)
                 putExtra(SmsMonitorService.EXTRA_SENSITIVITY, sensitivity)
                 putExtra(

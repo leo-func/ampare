@@ -1,17 +1,17 @@
 
 import { requireNativeModule } from "expo";
-import type { SmsStatus, SmsMonitoringConfig } from "../index";
+import type { SmsMonitoringConfig, SmsStatus } from "../index";
 
 declare class SmsSenderModuleType {
   isAvailable(): boolean;
 
   sendSMS(
-    phoneNumber: string,
+    phoneNumbers: string[],
     message: string
   ): Promise<SmsStatus>;
 
   startMonitoring(
-    phoneNumber: string,
+    phoneNumbers: string[],
     message: string,
     config: SmsMonitoringConfig
   ): boolean;

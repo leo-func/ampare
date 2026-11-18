@@ -15,19 +15,19 @@ export default {
   },
 
   sendSMS(
-    phoneNumber: string,
+    phoneNumbers: string[],
     message: string
   ): Promise<SmsStatus> {
-    return SmsSenderModule.sendSMS(phoneNumber, message);
+    return SmsSenderModule.sendSMS(phoneNumbers, message);
   },
 
   startMonitoring(
-    phoneNumber: string,
+    phoneNumbers: string[],
     message: string,
     config: SmsMonitoringConfig
   ): boolean {
     return SmsSenderModule.startMonitoring(
-      phoneNumber,
+      phoneNumbers,
       message,
       config
     );

@@ -22,7 +22,7 @@ class SmsMonitorService : Service(), SensorEventListener {
         const val CHANNEL_ID = "sos_monitor_channel"
         const val NOTIFICATION_ID = 1001
 
-        const val EXTRA_PHONE = "phone"
+        const val EXTRA_PHONES = "phones"
         const val EXTRA_MESSAGE = "message"
         const val EXTRA_SENSITIVITY = "sensitivity"
         const val EXTRA_DETECTION_DURATION = "detectionDuration"
@@ -32,7 +32,7 @@ class SmsMonitorService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
 
-    private var phone = ""
+    private var phoneNumbers: List<String> = emptyList()
     private var message = ""
 
     private var sensitivity = 5
@@ -65,27 +65,28 @@ class SmsMonitorService : Service(), SensorEventListener {
         startId: Int
     ): Int {
 
-        phone = intent?.getStringExtra(EXTRA_PHONE).orEmpty()
+        phoneNumbers = intent
+            ?.getStringArrayListExtra(EXTRA_PHONES)
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+
         message = intent?.getStringExtra(EXTRA_MESSAGE).orEmpty()
 
-        sensitivity = (intent?.getIntExtra(
-            EXTRA_SENSITIVITY,
-            5
-        ) ?: 5).coerceIn(1, 10)
+        sensitivity = (
+            intent?.getIntExtra(EXTRA_SENSITIVITY, 5) ?: 5
+        ).coerceIn(1, 10)
 
-        detectionDuration = (intent?.getLongExtra(
-            EXTRA_DETECTION_DURATION,
-            500L
-        ) ?: 500L).coerceIn(100L, 5000L)
+        detectionDuration = (
+            intent?.getLongExtra(EXTRA_DETECTION_DURATION, 500L) ?: 500L
+        ).coerceIn(100L, 5000L)
 
-        alertCooldown = (intent?.getLongExtra(
-            EXTRA_ALERT_COOLDOWN,
-            60_000L
-        ) ?: 60_000L).coerceIn(0L, 3_600_000L)
+        alertCooldown = (
+            intent?.getLongExtra(EXTRA_ALERT_COOLDOWN, 60_000L) ?: 60_000L
+        ).coerceIn(0L, 3_600_000L)
 
         configureSensitivity()
 
-        if (phone.isBlank() || message.isBlank() || accelerometer == null) {
+        if (phoneNumbers.isEmpty() || message.isBlank() || accelerometer == null) {
             stopSelf()
             return START_NOT_STICKY
         }
@@ -182,22 +183,28 @@ class SmsMonitorService : Service(), SensorEventListener {
 
             val parts = smsManager.divideMessage(message)
 
-            if (parts.size > 1) {
-                smsManager.sendMultipartTextMessage(
-                    phone,
-                    null,
-                    parts,
-                    null,
-                    null
-                )
-            } else {
-                smsManager.sendTextMessage(
-                    phone,
-                    null,
-                    message,
-                    null,
-                    null
-                )
+            for (phoneNumber in phoneNumbers) {
+                try {
+                    if (parts.size > 1) {
+                        smsManager.sendMultipartTextMessage(
+                            phoneNumber,
+                            null,
+                            parts,
+                            null,
+                            null
+                        )
+                    } else {
+                        smsManager.sendTextMessage(
+                            phoneNumber,
+                            null,
+                            message,
+                            null,
+                            null
+                        )
+                    }
+                } catch (error: Exception) {
+                    error.printStackTrace()
+                }
             }
 
         } catch (error: Exception) {
