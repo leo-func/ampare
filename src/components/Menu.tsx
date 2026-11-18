@@ -2,14 +2,16 @@ import { HomeIcon, SettingsIcon, UsersIcon } from "@/components/MenuIcons";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export function BottomMenu() {
+export function BottomMenu({
+    pathname
+} : {pathname: string}) {
     const insets = useSafeAreaInsets();
 
     return (
         <View style={[styles.container, { bottom: insets.bottom + 16 }]}>
 
             <View style={styles.item}>
-                <HomeIcon size={24} color="#fff" filled />
+                <HomeIcon size={24} color="#fff" filled={pathname ? pathname == '/' : false}/>
                 <Text style={[styles.label, styles.labelActive]}>Início</Text>
                 <View style={styles.underline} />
             </View>
@@ -17,14 +19,14 @@ export function BottomMenu() {
             <View style={styles.separator} />
 
             <View style={styles.item}>
-                <UsersIcon size={24} color="#FCE3E0" />
+                <UsersIcon size={24} color="#FCE3E0" filled={pathname ? pathname == '/contacts' : false}/>
                 <Text style={styles.label}>Contatos</Text>
             </View>
 
             <View style={styles.separator} />
 
             <View style={styles.item}>
-                <SettingsIcon size={24} color="#FCE3E0" />
+                <SettingsIcon size={24} color="#FCE3E0" filled={pathname ? pathname == '/settings' : false}/>
                 <Text style={styles.label}>Configurações</Text>
             </View>
 
