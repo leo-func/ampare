@@ -1,7 +1,6 @@
 import { AnimatedShield } from "@/components/AnimatedShield";
 import { BackgroundShape } from "@/components/BackgroundShape";
 import { PulseRings } from "@/components/PulseRings";
-import { ShieldHeartIcon } from "@/components/Shield";
 import { useSOSViewModel } from "@/viewmodel/sos.viewmodel";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -13,16 +12,11 @@ export function SOSView({
     return (
         <View style={styles.container}>
 
-            {/* HEADER */}
             <View style={styles.header}>
                 <View style={styles.background}>
                     <BackgroundShape />
                 </View>
-
-                <View style={styles.logoRow}>
-                    <ShieldHeartIcon size={26} />
-                    <Text style={styles.logo}>ampare</Text>
-                </View>
+                
                 <Text style={styles.title}>Olá!</Text>
                 <Text style={styles.subtitle}>Você não está sozinha.</Text>
             </View>
@@ -81,7 +75,7 @@ const styles = StyleSheet.create({
     header: {
         height: 190,
         paddingHorizontal: 24,
-        paddingTop: 40,
+        paddingTop: 60,
     },
     background: {
         position: "absolute",

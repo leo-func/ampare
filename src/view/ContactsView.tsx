@@ -1,6 +1,5 @@
 import { BackgroundShape } from "@/components/BackgroundShape"
 import { PhoneIcon, PlusIcon, TrashIcon, UserIcon } from "@/components/FormIcons"
-import { ShieldHeartIcon } from "@/components/Shield"
 import { getInitials } from "@/utils/getInitials"
 import { useContactsViewModel } from "@/viewmodel/contacts.viewmodel"
 import {
@@ -30,10 +29,6 @@ export function ContactsView({
                     <BackgroundShape />
                 </View>
 
-                <View style={styles.logoRow}>
-                    <ShieldHeartIcon size={26} />
-                    <Text style={styles.logo}>ampare</Text>
-                </View>
                 <Text style={styles.title}>Contatos</Text>
                 <Text style={styles.subtitle}>Pessoas que serão avisadas por você.</Text>
             </View>
@@ -133,7 +128,7 @@ const styles = StyleSheet.create({
     header: {
         height: 190,
         paddingHorizontal: 24,
-        paddingTop: 40,
+        paddingTop: 60,
     },
     background: {
         position: "absolute",

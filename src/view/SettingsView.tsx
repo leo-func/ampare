@@ -1,7 +1,6 @@
 import { BackgroundShape } from "@/components/BackgroundShape"
 import { BellIcon, ClockIcon, SensitivityIcon } from "@/components/FormIcons"
 import { SettingField } from "@/components/SettingField"
-import { ShieldHeartIcon } from "@/components/Shield"
 import { useSettingsViewModel } from "@/viewmodel/settings.viewmodel"
 import {
     ScrollView,
@@ -30,10 +29,6 @@ export function SettingsView({
                     <BackgroundShape />
                 </View>
 
-                <View style={styles.logoRow}>
-                    <ShieldHeartIcon size={26} />
-                    <Text style={styles.logo}>ampare</Text>
-                </View>
                 <Text style={styles.title}>Configurações</Text>
                 <Text style={styles.subtitle}>Ajuste a detecção de movimento.</Text>
             </View>
@@ -102,7 +97,7 @@ const styles = StyleSheet.create({
     header: {
         height: 190,
         paddingHorizontal: 24,
-        paddingTop: 40,
+        paddingTop: 60,
     },
     background: {
         position: "absolute",
