@@ -56,3 +56,46 @@ export function TrashIcon({ size = 22, color = "#8B0D1A" }: IconProps) {
         </Svg>
     )
 }
+
+export function SensitivityIcon({ size = 20, color = "#8B0D1A" }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Path
+                d="M3 12h3l2-6 4 12 3-9 2 3h4"
+                stroke={color}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </Svg>
+    )
+}
+
+export function ClockIcon({ size = 20, color = "#8B0D1A" }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Circle cx={12} cy={13} r={8} stroke={color} strokeWidth={1.8} />
+            <Path
+                d="M12 9v4l2.5 2M9 2h6"
+                stroke={color}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </Svg>
+    )
+}
+
+export function BellIcon({ size = 20, color = "#8B0D1A" }: IconProps) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Path
+                d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"
+                stroke={color}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+            />
+        </Svg>
+    )
+}
