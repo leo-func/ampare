@@ -1,58 +1,89 @@
+
 import { Config } from "@/model/Config.model";
-import { EmergencyContact } from "@/model/EmergencyContact.model";
-import { useState } from "react";
+import { Contact } from "@/model/Contact.model";
+import { useEffect, useState } from "react";
 import { Alert, PermissionsAndroid, Platform } from "react-native";
 import smsSender from "../../modules/sms-sender";
 
+import {
+  getConfig,
+  getContacts,
+  saveConfig,
+} from "@/services/storage.service";
 
 export function useSOSViewModel() {
-    const [contact, setContact] = useState<EmergencyContact>(() => ({
-        phone: '75981180393',
-        message: '6777',
-    }))
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  
+  const [config, setConfig] = useState<Config>({
+    sensitivity: "1",
+    detectionDuration: "100",
+    alertCooldown: "2000",
+  });
 
-    const [config, setConfig] = useState<Config>(() => ({
-        sensitivity: '1',
-        detectionDuration: '100',
-        alertCooldown: '2000'
-    }))
+  const [loading, setLoading] = useState(false);
+  const [monitoring, setMonitoring] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-    const [loading, setLoading] = useState(false);
-    const [monitoring, setMonitoring] = useState(false);
+  const message = "6777";
 
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [savedContacts, savedConfig] = await Promise.all([
+          getContacts(),
+          getConfig(),
+        ]);
 
-    async function ensureSmsPermission(): Promise<boolean> {
-        if (Platform.OS !== 'android') return false;
-
-        const permission = PermissionsAndroid.PERMISSIONS.SEND_SMS;
-        const already = await PermissionsAndroid.check(permission);
-        if (already) return true;
-
-        const result = await PermissionsAndroid.request(permission);
-        return result === PermissionsAndroid.RESULTS.GRANTED;
-    }
-    
-    async function ensureNotificationPermission(): Promise<boolean> {
-        if (Platform.OS !== 'android') return false
-
-        const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-        const already = await PermissionsAndroid.check(permission)
-
-        if (already) return true
-
-        const result = await PermissionsAndroid.request(permission)
-        return result === PermissionsAndroid.RESULTS.GRANTED
+        setContacts(savedContacts);
+        setConfig(savedConfig);
+      } catch (error: any) {
+        Alert.alert("Erro", error?.message ?? String(error));
+      } finally {
+        setDataLoaded(true);
+      }
     }
 
+    loadData();
+  }, []);
+
+  async function ensureSmsPermission(): Promise<boolean> {
+    if (Platform.OS !== "android") return false;
+
+    const permission = PermissionsAndroid.PERMISSIONS.SEND_SMS;
+    const already = await PermissionsAndroid.check(permission);
+
+    if (already) return true;
+
+    const result = await PermissionsAndroid.request(permission);
+
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  }
+
+  async function ensureNotificationPermission(): Promise<boolean> {
+    if (Platform.OS !== "android") return false;
+
+    const permission = PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS;
+    const already = await PermissionsAndroid.check(permission);
+
+    if (already) return true;
+
+    const result = await PermissionsAndroid.request(permission);
+
+    return result === PermissionsAndroid.RESULTS.GRANTED;
+  }
 
   function validateFields(): boolean {
-    if (!contact.phone.trim() || !contact.message.trim()) {
-      return false;
-    }
+    if (contacts.length === 0) return false;
 
-    if (!smsSender.isAvailable()) {
-      return false;
-    }
+    const phoneNumbers = contacts
+      .map((contact) => contact.phone.trim())
+      .filter((phone) => phone.length > 0);
+
+    if (phoneNumbers.length === 0) return false;
+
+    if (!message.trim()) return false;
+
+    if (!smsSender.isAvailable()) return false;
 
     return true;
   }
@@ -62,37 +93,63 @@ export function useSOSViewModel() {
     const detectionValue = Number(config.detectionDuration);
     const cooldownValue = Number(config.alertCooldown);
 
-    if (!Number.isInteger(sensitivityValue) ||sensitivityValue < 1 ||sensitivityValue > 10) return false
+    if (
+      !Number.isInteger(sensitivityValue) ||
+      sensitivityValue < 1 ||
+      sensitivityValue > 10
+    ) return false;
 
-    if (!Number.isInteger(detectionValue) || detectionValue < 100 || detectionValue > 5000) return false
+    if (
+      !Number.isInteger(detectionValue) ||
+      detectionValue < 100 ||
+      detectionValue > 5000
+    ) return false;
 
-    if (!Number.isInteger(cooldownValue) || cooldownValue < 0 || cooldownValue > 3600000) return false
+    if (
+      !Number.isInteger(cooldownValue) ||
+      cooldownValue < 0 ||
+      cooldownValue > 3600000
+    ) return false;
 
     return true;
   }
 
   async function handleStartMonitoring() {
-    if (!validateFields() || !validateConfig()) return;
+    if (!dataLoaded) return;
+
+    if (!validateFields()) {
+      Alert.alert(
+        "Atenção",
+        "Cadastre pelo menos um contato com número de telefone válido."
+      );
+      return;
+    }
+
+    if (!validateConfig()) {
+      Alert.alert("Atenção", "Verifique as configurações de monitoramento.");
+      return;
+    }
 
     try {
       setLoading(true);
 
       const smsGranted = await ensureSmsPermission();
 
-      if (!smsGranted) {
-        return;
-      }
-
+      if (!smsGranted) return;
 
       const notificationGranted = await ensureNotificationPermission();
 
-      if (!notificationGranted) {
-        return;
-      }
+      if (!notificationGranted) return;
+
+      const phoneNumbers = contacts
+        .map((contact) => contact.phone.trim())
+        .filter((phone) => phone.length > 0);
+
+      await saveConfig(config);
 
       smsSender.startMonitoring(
-        contact.phone.trim(),
-        contact.message.trim(),
+        phoneNumbers,
+        message,
         {
           sensitivity: Number(config.sensitivity),
           detectionDuration: Number(config.detectionDuration),
@@ -101,6 +158,7 @@ export function useSOSViewModel() {
       );
 
       setMonitoring(true);
+
     } catch (error: any) {
       Alert.alert("Erro", error?.message ?? String(error));
     } finally {
@@ -118,11 +176,13 @@ export function useSOSViewModel() {
   }
 
   return {
-    setContact,
+    contacts,
+    config,
     setConfig,
     monitoring,
     handleStartMonitoring,
     handleStopMonitoring,
-    loading
-  }
+    loading,
+    dataLoaded,
+  };
 }
