@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     },
     addButton: {
         height: 50,
-        borderRadius: 25,
+        borderRadius: 14,
         backgroundColor: "#7A0C18",
         flexDirection: "row",
         alignItems: "center",

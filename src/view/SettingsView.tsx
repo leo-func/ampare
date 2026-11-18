@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
 
     saveButton: {
         height: 50,
-        borderRadius: 25,
+        borderRadius: 14,
         backgroundColor: "#7A0C18",
         alignItems: "center",
         justifyContent: "center",
