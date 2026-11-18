@@ -1,34 +1,52 @@
 import { HomeIcon, SettingsIcon, UsersIcon } from "@/components/MenuIcons";
-import { StyleSheet, Text, View } from "react-native";
+import { router } from "expo-router";
+import { useEffect, useRef } from "react";
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function BottomMenu({
     pathname
 } : {pathname: string}) {
+    const transformX = useRef(new Animated.Value(0)).current
+
+    useEffect(() => {
+        Animated.parallel([
+                Animated.timing(transformX, {
+                    toValue: pathname === '/' 
+                    ? 0 
+                    : pathname === '/contacts'
+                        ? 110
+                        : 220,
+                    duration: 200,
+                    useNativeDriver: false
+                })
+        ]).start()
+    }, [pathname])
+
     const insets = useSafeAreaInsets();
 
     return (
         <View style={[styles.container, { bottom: insets.bottom + 16 }]}>
 
-            <View style={styles.item}>
+            <TouchableOpacity onPress={() => router.push('/')} style={styles.item}>
                 <HomeIcon size={24} color="#fff" filled={pathname ? pathname == '/' : false}/>
                 <Text style={[styles.label, styles.labelActive]}>Início</Text>
-                <View style={styles.underline} />
-            </View>
+                <Animated.View style={[styles.underline, {transform: [{translateX: transformX}]}]} />
+            </TouchableOpacity>
 
             <View style={styles.separator} />
 
-            <View style={styles.item}>
+            <TouchableOpacity onPress={() => router.push('/contacts')} style={styles.item}>
                 <UsersIcon size={24} color="#FCE3E0" filled={pathname ? pathname == '/contacts' : false}/>
                 <Text style={styles.label}>Contatos</Text>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.separator} />
 
-            <View style={styles.item}>
+            <TouchableOpacity onPress={() => router.push('/settings')} style={styles.item}>
                 <SettingsIcon size={24} color="#FCE3E0" filled={pathname ? pathname == '/settings' : false}/>
                 <Text style={styles.label}>Configurações</Text>
-            </View>
+            </TouchableOpacity>
 
         </View>
     );
